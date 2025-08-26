@@ -23,4 +23,4 @@ export type NewTask = {
     overdue: number;
   }
 
-export type FilterType = 'all' | 'completed' | 'incomplete' | 'today' | 'upcoming' | 'overdue';
+export type FilterType = 'all' | 'completed' | 'today' | 'upcoming' | 'overdue';

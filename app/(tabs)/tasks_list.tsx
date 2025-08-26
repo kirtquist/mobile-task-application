@@ -35,6 +35,7 @@ export default function Explore2Screen() {
     // console.log("TASKCOUNTS:",taskCounts.overdue)
     const { token, login } = useAuth();
 
+
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -42,6 +43,7 @@ export default function Explore2Screen() {
                 try {
                     await login(DEFAULT_USERNAME, DEFAULT_PASSWORD);
                 } catch (e: any) {
+                    console.log("TOKEN EXPIRED, likely due to token refresh",e)
                     if (!cancelled) setError(e?.message ?? 'Login failed');
                 }
             }

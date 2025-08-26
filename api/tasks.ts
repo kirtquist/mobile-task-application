@@ -1,8 +1,10 @@
 // src/api/tasks.ts
 // export async function fetchTasks(category: string = 'all'): Promise<any> {
 
+import { getItem } from '../lib/storage';
 
-export const BASE_URL = import.meta.env.VITE_API_URL;
+// export const BASE_URL = import.meta.env.VITE_API_URL;
+export const BASE_URL = "https://task-app-service-backend-426afe5-57fc7zcbta-uw.a.run.app/api";
 if (!/\/api$/.test(BASE_URL)) {
     // Optional: throw instead of warn if you want to hard-fail
     console.warn(`VITE_API_URL may be missing '/api': ${BASE_URL}`);
@@ -15,11 +17,12 @@ type ApiFetchOptions = RequestInit & {
 };
 
 
-export const apiFetch = async <T = any>(
+export const apiFetchOld = async <T = any>(
   endpoint: string,
   options: ApiFetchOptions = {}
 ): Promise<T> => {
-  const token = localStorage.getItem('access_token');
+  // const token = localStorage.getItem('access_token');
+  const token = await getItem('access_token');
 
 if (!BASE_URL) {
   throw new Error("🚨 VITE_API_URL (BASE_URL) is undefined!");
@@ -82,7 +85,8 @@ export const apiFetch2 = async <T = any>(
   endpoint: string,
   options: ApiFetchOptions = {}
 ): Promise<T> => {
-  const BASE_URL = import.meta.env.VITE_API_URL;
+  // const BASE_URL = import.meta.env.VITE_API_URL;
+  const BASE_URL = "https://task-app-service-backend-426afe5-57fc7zcbta-uw.a.run.app/api";
   const token = localStorage.getItem('access_token');
 
   const headers: HeadersInit = {

@@ -10,6 +10,7 @@ import Animated, {
 import { ThemedView } from '@/components/ThemedView';
 import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import {ThemedText} from "@/components/ThemedText";
 
 const HEADER_HEIGHT = 250;
 
@@ -57,7 +58,11 @@ export default function ParallaxScrollView({
             { backgroundColor: headerBackgroundColor[colorScheme] },
             headerAnimatedStyle,
           ]}>
-          {headerImage}
+          {/*{headerImage}*/}
+          <ThemedText type="title" style={styles.headerTitle}>
+            TASK PILOT
+          </ThemedText>
+
         </Animated.View>
         <ThemedView style={styles.content}>{children}</ThemedView>
       </Animated.ScrollView>
@@ -72,7 +77,17 @@ const styles = StyleSheet.create({
   header: {
     height: HEADER_HEIGHT,
     overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+
   },
+  headerTitle: {
+    fontSize: 22, // smaller than the default "title"
+    letterSpacing: 1,
+    fontWeight: '700',
+  },
+
   content: {
     flex: 1,
     padding: 32,

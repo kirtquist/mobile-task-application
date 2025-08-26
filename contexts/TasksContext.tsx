@@ -1,9 +1,11 @@
-import React, {createContext, useContext, useState, useEffect,} from 'react';
-import {Task, NewTask, TaskCounts, FilterType} from '../types';
+import React, {createContext, useContext, useState, useEffect, useCallback,} from 'react';
+import {Task, NewTask, TaskCounts, FilterType} from '../lib/types';
 // import { fetchTasks } from '../api/tasks';
-import {apiFetch} from '../api/tasks';
-import {useAuth} from './AuthContext.tsx'
-import {useUndoableAction} from "../hooks/useUndoableAction.ts";
+// import {apiFetch} from '../api/tasks';
+import {apiFetch} from '../lib/storage'
+import {useAuth} from '../hooks/useAuth'
+import {useUndoableAction} from "../hooks/useUndoableAction";
+import {Pressable} from "react-native";
 
 interface TaskDataContext {
     tasks: Task[];
@@ -30,6 +32,7 @@ interface TaskDataContext {
 }
 
 
+
 const TasksContext = createContext<TaskDataContext | undefined>(undefined);
 
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
@@ -42,34 +45,56 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({children
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     // const [pendingCompletion, setPendingCompletion] = useState<{ [id: number]: NodeJS.Timeout }>({});
     const {isAuthenticated} = useAuth();
-
+    const {user} = useAuth();
+    console.log('user in context:', user);
     // console.log('isTaskFormVisible in context:', isTaskFormVisible);    // TODO remove this when done debugging
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await apiFetch<Task[]>('/tasks/');
+            console.log("✅ tasks fetched:", data.length);
+            setTasks(data);
+            setFilteredTasks(data);
+        } catch (err) {
+            console.error('Fetch error:', err);
+            setError('Failed to fetch tasks' + err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+    // void fetchData().catch((err) => {
+    //     console.error('Error in fetchData:', err);
+    // });
 
     useEffect(() => {
         if (!isAuthenticated) {         // Wait to fetch until logged in
             return;
         }
+        // void fetchData();
         console.log("🟡 Fetching tasks because user is authenticated:", isAuthenticated);
-
-        const fetchData = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const data = await apiFetch<Task[]>('/tasks/');
-                console.log("✅ tasks fetched:", data.length);
-                setTasks(data);
-                setFilteredTasks(data);
-            } catch (err) {
-                console.error('Fetch error:', err);
-                setError('Failed to fetch tasks' + err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        void fetchData().catch((err) => {
-            console.error('Error in fetchData:', err);
-        });
-    }, [isAuthenticated,]);
+        console.log('user in context2:', user);
+        void fetchData();
+        // const fetchData = async () => {
+        //     setLoading(true);
+        //     setError(null);
+        //     try {
+        //         const data = await apiFetch<Task[]>('/tasks/');
+        //         console.log("✅ tasks fetched:", data.length);
+        //         setTasks(data);
+        //         setFilteredTasks(data);
+        //     } catch (err) {
+        //         console.error('Fetch error:', err);
+        //         setError('Failed to fetch tasks' + err);
+        //     } finally {
+        //         setLoading(false);
+        //     }
+        // };
+        // void fetchData().catch((err) => {
+        //     console.error('Error in fetchData:', err);
+        // });
+    }, [fetchData,isAuthenticated,]);
 
     useEffect(() => {
         const filtered = filterAndSortTasks(tasks, filterType);
@@ -84,8 +109,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({children
             switch (filterType) {
                 case 'completed':
                     return task.completed;
-                case 'incomplete':
-                    return !task.completed;
+                // case 'incomplete':
+                //     return !task.completed;
                 case 'today':
                     return (
                         due.getFullYear() === today.getFullYear() &&
@@ -129,6 +154,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({children
     const onToggleComplete = (taskId: number, completed: boolean): Promise<void> => {
         return new Promise((resolve) => {
             if (undoable.isPending(taskId)) {
+                <Pressable>Undo</Pressable>
+                console.log(`Undoing toggle for task ${taskId}`);
                 undoable.cancel(taskId);
                 return resolve();
             }
@@ -137,9 +164,13 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({children
                 id: taskId,
                 action: async () => {
                     try {
-                        await apiFetch<Task>(`/tasks/${taskId}/toggle_complete/`, {
-                            method: 'PATCH',
-                        });
+                        await apiFetch<Task>(`/tasks/${taskId}/toggle_complete/`, { method: 'PATCH' });
+                        await fetchData();
+                        try {
+                            fetchData();
+                        } catch (err) {
+                            console.error('Failed to fetch data, err')
+                        }
 
                         setTasks((prev) =>
                             prev.map((t) =>
@@ -167,6 +198,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({children
 
     // Task LifeCycle
     const createNewTask = async (taskData: NewTask) => {
+        console.log('Creating new task:', taskData);
         try {
             const newTask = await apiFetch<Task>(`/tasks/`, {
                 method: 'POST',
@@ -213,9 +245,12 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({children
     };
 
     const onDeleteTask = (taskId: number) => {
-        if (!window.confirm('Are you sure you want to delete this task?')) {
+        // if (!window.confirm('Are you sure you want to delete this task?')) {
+
+        if (window.confirm('Are you sure you want to delete this task?')) {
             deleteTask(taskId);
         }
+        // Use Alert.alert(...) instead of window.confirm for mobile/native
     };
 
     // Cleanup

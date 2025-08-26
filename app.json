@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile-underwriter-calc",
-    "slug": "mobile-underwriter-calc",
+    "name": "mobile-taskpilot",
+    "slug": "mobile-taskpilot",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

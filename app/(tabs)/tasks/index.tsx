@@ -1,8 +1,9 @@
-// app/(tabs)/tasks.tsx
+// app/(tabs)/index.tsx
 import React from "react";
 import { View, Text, Pressable, FlatList, ActivityIndicator, StyleSheet } from "react-native";
 import { useTasksContext } from "@/contexts/TasksContext";
 import type { FilterType, Task } from "@/lib/types";
+import { useTheme } from '@react-navigation/native';
 
 const FILTERS: FilterType[] = ["all","today","upcoming","completed","overdue"];
 
@@ -13,47 +14,90 @@ export default function TasksScreen() {
         taskCounts, onToggleComplete,
     } = useTasksContext();
 
-    if (loading) return <Center><ActivityIndicator /></Center>;
-    if (error)   return <Center><Text>{error}</Text></Center>;
+    const { colors, dark } = useTheme();
+    const muted = dark ? "rgba(235,235,245,0.6)" : "rbga(60,60,67,0.6)";
+
+    if (loading) return (
+        <Center>
+            <ActivityIndicator color={colors.primary} />
+        </Center>
+    );
+
+    if (error)   return (
+        <Center>
+            <Text style={{color: colors.notification}}>{error}</Text>
+        </Center>
+    );
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, {backgroundColor: colors.background}]}>
             <View style={styles.filters}>
-                {FILTERS.map((f) => (
-                    <Pressable
-                        key={f}
-                        onPress={() => setFilterType(f)}
-                        style={[styles.chip, filterType === f && styles.chipActive]}
-                    >
-                        <Text style={filterType === f ? styles.chipTextActive : styles.chipText}>
-                            {f} ({taskCounts[f]})
-                        </Text>
-                    </Pressable>
-                ))}
+                {FILTERS.map((f) => {
+                    const isActive = filterType === f;
+                    return (
+                        <Pressable
+                            key={f}
+                            onPress={() => setFilterType(f)}
+                            style={[
+                                styles.chip,
+                                { borderColor: colors.border, backgroundColor: colors.card },
+                                isActive && { backgroundColor: colors.primary , borderColor: colors.primary},
+                                ]}
+                        >
+                            <Text style={
+                                isActive
+                                ? [styles.chipTextActive, {color: colors.background} ]
+                                    : [styles.chipText, {color: colors.text}]
+                            }
+                                >
+                                {f} ({taskCounts[f]})
+                            </Text>
+                        </Pressable>
+                )})}
             </View>
 
             <FlatList
                 data={filteredTasks}
                 keyExtractor={(t) => String(t.id)}
                 renderItem={({ item }) => <TaskRow task={item} onToggle={onToggleComplete} />}
-                ListEmptyComponent={<Text>No tasks.</Text>}
+                ListEmptyComponent={
+                    <Text style={{ color: muted, textAlign: "center", padding: 16}}>
+                        No tasks.
+                    </Text>}
             />
         </View>
     );
 }
 
 function TaskRow({ task, onToggle }: { task: Task; onToggle: (id:number, completed:boolean)=>Promise<void> }) {
+    const { colors, dark } = useTheme();
+    const muted = dark ? "rgba(235,235,245,0.6)" : "rbga(60,60,67,0.6)";
+
     return (
-        <View style={styles.row}>
+        <View style={[styles.row,{borderBottomColor: colors.border}]}>
             <Pressable onPress={() => onToggle(task.id, !task.completed)} style={styles.checkbox}>
-                <Text>{task.completed ? "☑" : "☐"}</Text>
+                <Text style={{ color: task.completed ? colors.primary : colors.text}}>
+                    {task.completed ? "☑" : "☐"}</Text>
             </Pressable>
 
 
             <View style={{ flex: 1 }}>
-                <Text style={[styles.title, task.completed && styles.completed]}>{task.description}</Text>
-                <Text style={styles.meta}>Due: {new Date(task.due_date).toLocaleDateString()}</Text>
-                <Text style={styles.meta}>Recurrence in days: {new String(task.recurrence)}</Text>
+                <Text
+                    style={[
+                        styles.title,
+                        { color: colors.text },
+                        task.completed && { textDecorationLine: "line-through", color:muted},
+                    ]}>
+                    {task.description}
+                </Text>
+                <Text
+                    style={[styles.meta,{ color: muted }
+                ]}>
+                    Due: {new Date(task.due_date).toLocaleDateString()}
+                </Text>
+                <Text style={[styles.meta, {color: muted}]}>
+                    Recurrence in days: {new String(task.recurrence)}
+                </Text>
             </View>
         </View>
     );

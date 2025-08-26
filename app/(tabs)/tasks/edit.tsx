@@ -15,7 +15,7 @@ import {useTasksContext} from '@/contexts/TasksContext';
 
 export default function NewTaskScreen() {
     const router = useRouter();
-    const {createTask} = useTasksContext();
+    const {editingTask, setEditingTask, updateTask} = useTasksContext();
 
     const [form, setForm] = useState<NewTask>({
         description: '',
@@ -29,7 +29,7 @@ export default function NewTaskScreen() {
     const onSave = (e: React.FormEvent) => {
         e.preventDefault();
         const utcDate = new Date(dueDate).toISOString();
-
+        updateTask(form)
         // TODO: replace with your create-task logic (context/mutation/API)
         // e.g., await createTask(form);
         // For now, simply go back after "saving"

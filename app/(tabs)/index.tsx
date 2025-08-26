@@ -1,24 +1,41 @@
+import React, {use, useState} from 'react';
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, SafeAreaView } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import {ExternalLink} from "@/components/ExternalLink";
+// import LoginCard from "../../components/LoginCard"; //
+// import { useAuth } from "../../contexts/AuthContext";
+import { useAuth} from "@/hooks/useAuth";
+import { useLoginHandler} from "@/hooks/auth";
+
 
 export default function HomeScreen() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    const {user} = useAuth();
+    const logout = async () => {
+        // ...perform logout...
+        setIsAuthenticated(false);
+    };
+
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
+          source={require('@/assets/images/debt-help-logo.png')}
           style={styles.reactLogo}
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
+        <ThemedText type="title">Welcome {user?.username ?? 'Guest'}!</ThemedText>
         <HelloWave />
+
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
@@ -51,6 +68,13 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
       </ThemedView>
+<ThemedView style={styles.stepContainer}>
+    <ThemedText type="subtitle">Step 4: Get some debt relief</ThemedText>
+        <ExternalLink href="https://io.debt.help">
+            <ThemedText type="link">IO Debt Help </ThemedText>
+        </ExternalLink>
+</ThemedView>
+
     </ParallaxScrollView>
   );
 }
@@ -72,4 +96,8 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
   },
+});
+
+const styles2 = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: "#f3f4f6" },
 });
