@@ -30,7 +30,20 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build Expo web
-        run: npx expo export --platform web --output-dir dist --public-url "$PUBLIC_URL"
+        run: npx expo export --platform web --output-dir dist
+
+      # Prefix leading "/_expo/" to "/<repo>/_expo/" so assets load under project pages.
+      # Skipped for user/organization sites named "<owner>.github.io".
+      - name: Prefix asset paths for GitHub Project Pages
+        if: ${{ github.event.repository.name != format('{0}.github.io', github.repository_owner) }}
+        run: |
+          set -euo pipefail
+          REPO="${{ github.event.repository.name }}"
+          find dist -type f -regextype posix-extended -regex '.*\.(html|js|css|json|map)$' -print0 \
+            | xargs -0 sed -i \
+              -e "s|\"/_expo/|\"/${REPO}/_expo/|g" \
+              -e "s|'/_expo/|'/\${REPO}/_expo/|g"
+
       - name: SPA fallback (404 -> index)
         run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
