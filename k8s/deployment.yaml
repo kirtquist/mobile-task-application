@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mobile-task
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mobile-task
+  template:
+    metadata:
+      labels:
+        app: mobile-task
+    spec:
+      containers:
+        - name: mobile-task
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80

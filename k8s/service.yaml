@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mobile-task
+spec:
+  selector:
+    app: mobile-task
+  ports:
+    - port: 80
+      targetPort: 80
