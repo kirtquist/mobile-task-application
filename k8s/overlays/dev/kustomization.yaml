@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+bases:
+  - ../../base
+
+namePrefix: dev-
+
+commonLabels:
+  environment: development
+
+patches:
+  - deployment-patch.yaml
+
+images:
+  - name: your-registry/mobile-task
+    newName: us-west1-docker.pkg.dev/edgeshop-2026/edge-shop/mobile-task
+    newTag: latest  # or use specific tag like v1.0.0

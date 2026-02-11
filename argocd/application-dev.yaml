@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mobile-task-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kirtquist/mobile-task-application.git  # Update with your Git repo URL
+    targetRevision: main  # or your default branch
+    path: k8s/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
