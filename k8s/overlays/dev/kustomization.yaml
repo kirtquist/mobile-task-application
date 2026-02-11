@@ -3,7 +3,7 @@ kind: Kustomization
 
 namespace: default
 
-bases:
+resources:
   - ../../base
 
 namePrefix: dev-
@@ -11,7 +11,7 @@ namePrefix: dev-
 commonLabels:
   environment: development
 
-patches:
+patchesStrategicMerge:
   - deployment-patch.yaml
 
 images:
