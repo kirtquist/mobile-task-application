@@ -70,9 +70,11 @@ jobs:
   build-docker:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
         # Uses service account key from GitHub secret
@@ -117,3 +119,28 @@ jobs:
           echo "  - ${{ env.IMAGE_PATH }}:latest"
           echo "  - ${{ env.IMAGE_PATH }}:${{ steps.meta.outputs.short_sha }}"
           echo "  - ${{ env.IMAGE_PATH }}:${{ steps.meta.outputs.branch_name }}"
+
+      # NEW: Update Kubernetes manifest with new image tag
+      - name: Update Kubernetes manifest
+        run: |
+          # Check if using Kustomize (kustomization.yaml) or direct deployment.yaml
+          if [ -f "k8s/overlays/dev/kustomization.yaml" ]; then
+            # Update kustomization.yaml (Kustomize)
+            sed -i "s|newTag:.*|newTag: ${{ steps.meta.outputs.short_sha }}|g" k8s/overlays/dev/kustomization.yaml
+            sed -i "s|newName:.*|newName: ${{ env.IMAGE_PATH }}|g" k8s/overlays/dev/kustomization.yaml || true
+          elif [ -f "k8s/overlays/dev/deployment.yaml" ]; then
+            # Update deployment.yaml directly
+            sed -i "s|image:.*mobile-task.*|image: ${{ env.IMAGE_PATH }}:${{ steps.meta.outputs.short_sha }}|g" k8s/overlays/dev/deployment.yaml
+          else
+            echo "⚠️ Warning: Could not find k8s/overlays/dev/kustomization.yaml or deployment.yaml"
+            exit 1
+          fi
+
+      # NEW: Commit and push the updated manifest
+      - name: Commit and push manifest update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add k8s/overlays/dev/
+          git diff --staged --quiet || git commit -m "chore: update image tag to ${{ steps.meta.outputs.short_sha }} [skip ci]"
+          git push
