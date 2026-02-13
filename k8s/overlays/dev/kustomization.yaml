@@ -17,4 +17,5 @@ patchesStrategicMerge:
 images:
   - name: your-registry/mobile-task
     newName: us-west1-docker.pkg.dev/edgeshop-2026/edge-shop/mobile-task
-    newTag: latest  # or use specific tag like v1.0.0
+    # newTag: latest  # or use specific tag like v1.0.0
+    newTag: a3a1bfe
