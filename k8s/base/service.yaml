@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: mobile-task
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: mobile-task
   ports:
